@@ -41,15 +41,25 @@
         cursor: default;
       }
 
-      /* 仅将顶部 header 设为可拖动区域，避免干扰内部交互 */
-      .header {
-        -webkit-app-region: drag;
+      /* 将顶部 header 与主容器设为可拖动区域，保留 .no-drag 给交互元素 */
+      .header, .container {
+        -webkit-app-region: drag; 
         display: flex;
         justify-content: space-between;
         align-items: center;
         height: 30px;
         padding: 6px 10px;
         border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+
+      /* 强制禁用选择，防止拖动时选中文字 */
+      .container, .container * {
+        -webkit-user-select: none !important;
+        -moz-user-select: none !important;
+        -ms-user-select: none !important;
+        user-select: none !important;
+        -webkit-user-drag: none !important;
       }
 
       /* 可交互元素禁止拖拽 */
@@ -82,6 +92,11 @@
 
       .gold-name { color: #ddd; flex: 3; }
       .gold-price { font-weight: bold; color: #FFD700; flex: 2; text-align: right; }
+
+      /* 使常规显示项也成为拖动区域（但交互元素仍需 .no-drag） */
+      .gold-item, .gold-name, .gold-price, .title {
+        -webkit-app-region: drag;
+      }
 
       .update-time {
         text-align: center;

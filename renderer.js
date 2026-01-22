@@ -102,6 +102,141 @@ ipcRenderer.on('gold-price-update', (event, priceData) => {
   updateGoldDisplay(priceData);
 });
 
+// 防止在可拖动的展示区选中文本：在非交互区的 mousedown 时临时禁用选择，mouseup 时恢复
+(function enableDragSelectionFix() {
+  let previousUserSelect = '';
+
+  function disableSelection() {
+    try {
+      previousUserSelect = document.body.style.userSelect || '';
+      document.body.style.userSelect = 'none';
+      document.body.style.webkitUserSelect = 'none';
+    } catch (e) {}
+  }
+
+  function restoreSelection() {
+    try {
+      document.body.style.userSelect = previousUserSelect || '';
+      document.body.style.webkitUserSelect = '';
+    } catch (e) {}
+  }
+
+  // 在非交互区（没有 .no-drag 的祖先）进行处理
+  function isInteractive(el) {
+    return el && el.closest && el.closest('.no-drag');
+  }
+
+  document.addEventListener('mousedown', (e) => {
+    if (e.button !== 0) return; // 仅响应左键
+    if (isInteractive(e.target)) return;
+    disableSelection();
+  }, true);
+
+  document.addEventListener('mouseup', () => {
+    restoreSelection();
+  }, true);
+
+  // 阻止 selectstart 与 dragstart 在非交互区触发选中或拖动图片等
+  document.addEventListener('selectstart', (e) => {
+    if (!isInteractive(e.target)) e.preventDefault();
+  }, true);
+
+  document.addEventListener('dragstart', (e) => {
+    if (!isInteractive(e.target)) e.preventDefault();
+  }, true);
+
+  // 触控设备支持
+  document.addEventListener('touchstart', (e) => {
+    const el = e.target;
+    if (isInteractive(el)) return;
+    disableSelection();
+  }, { passive: true });
+
+  document.addEventListener('touchend', () => {
+    restoreSelection();
+  });
+})();
+
+// 后备：如果 CSS 的 -webkit-app-region 在当前平台不工作，使用手动拖动窗口的方式
+;(function enableManualWindowDragFallback() {
+  const { remote: remoteModule, ipcRenderer } = require('electron');
+  let currentWindow = null;
+  try {
+    currentWindow = remoteModule && remoteModule.getCurrentWindow && remoteModule.getCurrentWindow();
+  } catch (e) {
+    currentWindow = null;
+  }
+
+  let dragging = false;
+  let startMouse = { x: 0, y: 0 };
+  let startWin = { x: 0, y: 0 };
+
+  function isInteractive(el) {
+    return el && el.closest && el.closest('.no-drag');
+  }
+
+  function useRemote() {
+    return !!(currentWindow && typeof currentWindow.setPosition === 'function');
+  }
+
+  function onMouseMoveRemote(e) {
+    if (!dragging) return;
+    try {
+      const dx = e.screenX - startMouse.x;
+      const dy = e.screenY - startMouse.y;
+      currentWindow.setPosition(Math.round(startWin.x + dx), Math.round(startWin.y + dy));
+    } catch (err) {
+      console.error('remote setPosition error', err);
+    }
+  }
+
+  function onMouseUpRemote() {
+    if (!dragging) return;
+    dragging = false;
+    window.removeEventListener('mousemove', onMouseMoveRemote, true);
+    window.removeEventListener('mouseup', onMouseUpRemote, true);
+  }
+
+  function onMouseMoveIpc(e) {
+    if (!dragging) return;
+    ipcRenderer.invoke('manual-drag-move', { screenX: e.screenX, screenY: e.screenY }).catch(() => {});
+  }
+
+  function onMouseUpIpc() {
+    if (!dragging) return;
+    dragging = false;
+    window.removeEventListener('mousemove', onMouseMoveIpc, true);
+    window.removeEventListener('mouseup', onMouseUpIpc, true);
+    ipcRenderer.invoke('manual-drag-end').catch(() => {});
+  }
+
+  document.addEventListener('mousedown', (e) => {
+    if (e.button !== 0) return; // 仅左键
+    if (isInteractive(e.target)) return;
+    dragging = true;
+    startMouse = { x: e.screenX, y: e.screenY };
+
+    if (useRemote()) {
+      try {
+        const pos = currentWindow.getPosition();
+        startWin = { x: pos[0], y: pos[1] };
+        window.addEventListener('mousemove', onMouseMoveRemote, true);
+        window.addEventListener('mouseup', onMouseUpRemote, true);
+        console.debug('manual drag using remote started', startMouse, startWin);
+      } catch (err) {
+        dragging = false;
+        console.error('failed to start remote drag', err);
+      }
+    } else {
+      // 使用 IPC 回退到主进程移动窗口
+      ipcRenderer.invoke('manual-drag-start', { screenX: e.screenX, screenY: e.screenY }).catch(() => {});
+      window.addEventListener('mousemove', onMouseMoveIpc, true);
+      window.addEventListener('mouseup', onMouseUpIpc, true);
+      console.debug('manual drag using ipc started', startMouse);
+    }
+  }, true);
+})();
+
 // 添加右键菜单功能
 const { Menu, MenuItem } = remote;
 

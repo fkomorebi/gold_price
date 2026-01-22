@@ -157,3 +157,47 @@ var hq_str_hf_XAU = "4834.51,4831.010,4834.51,4834.86,4838.82,4772.39,16:02:00,4
   const parsed = parseHqStrVars(sample);
   console.log('parseHqStrVars 示例输出:', parsed);
 }
+
+// IPC 回退：主进程处理手动拖动请求（用于没有 remote 的 Electron 环境）
+const dragState = new WeakMap();
+
+ipcMain.handle('manual-drag-start', (event, { screenX, screenY }) => {
+  try {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (!win) return false;
+    const pos = win.getPosition();
+    dragState.set(win, { mouseX: screenX, mouseY: screenY, winX: pos[0], winY: pos[1] });
+    return true;
+  } catch (err) {
+    console.error('manual-drag-start error', err);
+    return false;
+  }
+});
+
+ipcMain.handle('manual-drag-move', (event, { screenX, screenY }) => {
+  try {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (!win) return false;
+    const s = dragState.get(win);
+    if (!s) return false;
+    const dx = screenX - s.mouseX;
+    const dy = screenY - s.mouseY;
+    win.setPosition(Math.round(s.winX + dx), Math.round(s.winY + dy));
+    return true;
+  } catch (err) {
+    console.error('manual-drag-move error', err);
+    return false;
+  }
+});
+
+ipcMain.handle('manual-drag-end', (event) => {
+  try {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (!win) return false;
+    dragState.delete(win);
+    return true;
+  } catch (err) {
+    console.error('manual-drag-end error', err);
+    return false;
+  }
+});
