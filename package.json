@@ -1,0 +1,20 @@
+{
+  "name": "gold_price",
+  "version": "1.0.0",
+  "description": "桌面小工具，用于显示实时金价",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["electron", "gold-price", "desktop-widget"],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.28.1",
+  "devDependencies": {
+    "electron": "^40.0.0"
+  },
+  "dependencies": {
+    "axios": "^1.6.0"
+  }
+}

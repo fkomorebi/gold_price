@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'"
+    />
+    <meta
+      http-equiv="X-Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'"
+    />
+    <title>金价悬浮窗</title>
+    <style>
+      /* 基础布局与行为 */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+        -webkit-touch-callout: none;
+      }
+
+      html, body {
+        height: 100%;
+        overflow: hidden; /* 禁止滚动，防止出现滚动条 */
+      }
+
+      body {
+        font-family: 'Microsoft YaHei', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: rgba(0, 0, 0, 0.75);
+        color: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+        font-size: 10px;
+        cursor: default;
+      }
+
+      /* 仅将顶部 header 设为可拖动区域，避免干扰内部交互 */
+      .header {
+        -webkit-app-region: drag;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        height: 30px;
+        padding: 6px 10px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      /* 可交互元素禁止拖拽 */
+      .no-drag, a, button, input, textarea, [contenteditable] {
+        -webkit-app-region: no-drag;
+      }
+
+      .container {
+        width: 100%;
+        padding: 8px 10px;
+      }
+
+      .title {
+        font-size: 12px;
+        font-weight: bold;
+        color: #FFD700;
+        flex-grow: 1;
+        -webkit-user-select: none;
+      }
+
+      .gold-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 3px 0;
+        padding: 2px 0;
+        font-size: 10px;
+        -webkit-user-select: none;
+      }
+
+      .gold-name { color: #ddd; flex: 3; }
+      .gold-price { font-weight: bold; color: #FFD700; flex: 2; text-align: right; }
+
+      .update-time {
+        text-align: center;
+        font-size: 8px;
+        color: #aaa;
+        margin-top: 8px;
+        padding-top: 6px;
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      .loading { text-align: center; padding: 18px 0; color: #FFD700; font-size: 11px; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      
+      <div id="gold-data-container">
+        <div class="loading">获取中...</div>
+      </div>
+      
+      <div id="update-time" class="update-time no-drag"></div>
+    </div>
+    
+    <script src="./renderer.js"></script>
+  </body>
+</html>
