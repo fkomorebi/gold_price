@@ -48,30 +48,74 @@ const createWindow = () => {
   }
 };
 
-// 获取金价的真实函数 — 使用 huilvbiao 返回的 hq_str_* 文本并解析
+// 获取金价的真实函数 — 使用京东金融简单报价API
 const getGoldPrice = async () => {
   try {
-    const response = await axios.get('https://www.huilvbiao.com/api/gold_indexApi', {
-      responseType: 'text',
+    const response = await axios.post('https://ms.jr.jd.com/gw2/generic/jdtwt/h5/m/getSimpleQuoteUseUniqueCodes', {
+      ticket: "jd-jr-pc",
+      uniqueCodes: ["SGE-Au99.99"]
+    }, {
       headers: {
-        accept: '*/*',
+        'accept': 'application/json, text/plain, */*',
+        'accept-language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6',
+        'content-type': 'application/json',
+        'priority': 'u=1, i',
+        'sec-ch-ua': '"Not(A:Brand";v="8", "Chromium";v="144", "Microsoft Edge";v="144"',
+        'sec-ch-ua-mobile': '?0',
+        'sec-ch-ua-platform': '"Windows"',
+        'sec-fetch-dest': 'empty',
+        'sec-fetch-mode': 'cors',
+        'sec-fetch-site': 'same-site',
         'x-requested-with': 'XMLHttpRequest',
-        referer: 'https://www.huilvbiao.com/gold'
-      },
-      withCredentials: true
+        'referer': 'https://show.jd.com/m/XJ1jgYewzanMvpa4/?pageKey=XJ1jgYewzanMvpa4&uCode=SGE-Au99.99&symbolName=%E9%BB%84%E9%87%919999&sourceType=stock&_t=1769091217750&parentOrigin=https%3A%2F%2Fjdjr.jd.com&channelfrom=grouppc&ua=jdjr-app'
+      }
     });
 
-    const text = typeof response.data === 'string' ? response.data : String(response.data);
-    const parsed = parseHqStrVars(text);
+    // 解析返回的数据
+    const data = response.data;
+    if (data && data.resultData && data.resultData.code === 200 && data.resultData.success) {
+      const quoteList = data.resultData.data;
+      
+      if (quoteList && quoteList.length > 0) {
+        const quoteData = quoteList[0]; // 获取第一个（也是唯一一个）黄金报价
+        
+        // 提取价格相关数据
+        const lastPrice = quoteData.lastPrice; // 当前价格
+        const name = quoteData.name || '黄金9999'; // 商品名称
+        const raise = quoteData.raise; // 涨跌额
+        const raisePercent = (quoteData.raisePercent * 100).toFixed(2); // 涨跌幅百分比
+        const highPrice = quoteData.highPrice; // 最高价
+        const lowPrice = quoteData.lowPrice; // 最低价
+        const openPrice = quoteData.openPrice; // 开盘价
+        const tradeDateTime = quoteData.tradeDateTime; // 交易时间
+        
+        // 格式化日期时间
+        const dateTimeStr = `${tradeDateTime.year}-${String(tradeDateTime.monthValue).padStart(2, '0')}-${String(tradeDateTime.dayOfMonth).padStart(2, '0')} ${String(tradeDateTime.hour).padStart(2, '0')}:${String(tradeDateTime.minute).padStart(2, '0')}:${String(tradeDateTime.second).padStart(2, '0')}`;
+        
+        // 组织成渲染进程能识别的格式
+        const parsed = {
+          'jd_simple_quote': {
+            symbol: quoteData.uniqueCode,
+            raw: `${lastPrice},${raise}(${raisePercent}%)`,
+            values: [parseFloat(lastPrice), `${raise}(${raisePercent}%)`, name],
+            date: dateTimeStr,
+            name: name
+          }
+        };
 
-    const updateTime = new Date().toLocaleTimeString('zh-CN', {
-      hour12: false,
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
-    });
+        const updateTime = new Date().toLocaleTimeString('zh-CN', {
+          hour12: false,
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit'
+        });
 
-    return { parsed, raw: text, updateTime };
+        return { parsed, raw: JSON.stringify(quoteData), updateTime };
+      }
+    } else {
+      console.error('API返回错误:', data);
+      return null;
+    }
   } catch (error) {
     console.error('获取金价数据失败:', error.message);
     return null;
@@ -84,6 +128,9 @@ const sendGoldPrice = async () => {
     const priceData = await getGoldPrice();
     if (priceData) {
       mainWindow.webContents.send('gold-price-update', priceData);
+    } else {
+      // 发送空数据表示获取失败
+      mainWindow.webContents.send('gold-price-update', null);
     }
   }
 };
@@ -134,8 +181,8 @@ app.whenReady().then(async () => {
   // 立即获取一次数据
   await sendGoldPrice();
   
-  // 启动定时器每30秒获取一次金价数据
-  setInterval(sendGoldPrice, 30000);
+  // 启动定时器每3秒获取一次金价数据
+  setInterval(sendGoldPrice, 3000);
 });
 
 // 当所有窗口关闭时退出应用（macOS除外）
