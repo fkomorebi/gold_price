@@ -16,9 +16,14 @@ function updateGoldDisplay(priceData) {
   const timeDiv = document.getElementById('update-time');
 
   if (!priceData) {
-    container.innerHTML = '<div class="loading">获取失败</div>';
+    container.innerHTML = '<div class="loading"><span>获取失败</span></div>';
     timeDiv.textContent = '';
     return;
+  }
+
+  // 辅助：返回内联 SVG
+  function svgFor(name) {
+    return ``;
   }
 
   // 如果主进程返回了解析后的 hq_str_* 对象，优先渲染它
@@ -40,9 +45,16 @@ function updateGoldDisplay(priceData) {
         }
       }
 
+      // 根据名称简单映射图标：回收/银行/默认金币
+      let iconName = 'icon-coin';
+      const lower = String(name).toLowerCase();
+      if (lower.includes('回收') || lower.includes('回头') || lower.includes('回收')) iconName = 'icon-recycle';
+      else if (lower.includes('bank') || lower.includes('银行') || lower.includes('工商') || lower.includes('中行') || lower.includes('招行')) iconName = 'icon-bank';
+
       goldHtml += `
         <div class="gold-item">
-          <span class="gold-name">${escapeHtml(name)}</span>
+            ${svgFor(iconName)}
+            <span class="gold-name">${escapeHtml(name)}</span>
           <span class="gold-price">${escapeHtml(displayPrice)}</span>
         </div>
       `;

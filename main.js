@@ -10,11 +10,13 @@ const createWindow = () => {
   const { width: screenWidth } = screen.getPrimaryDisplay().workAreaSize;
   
   // 计算窗口位置，在右上角
-  const windowX = screenWidth - 220; // 距离右边20px
-  
+  const windowWidth = 180; // 窗口内容宽度
+  const windowHeight = 140; // 窗口高度
+  const windowX = screenWidth - windowWidth - 20; // 距离右边20px
+
   mainWindow = new BrowserWindow({
-    width: 200,                    // 小巧的窗口尺寸
-    height: 150,                   // 小巧的窗口高度
+    width: windowWidth,                    // 小巧的窗口尺寸
+    height: windowHeight,                  // 小巧的窗口高度
     x: windowX,                    // 固定到右侧
     y: 20,                         // 距离顶部20px
     transparent: true,             // 设置窗口透明
@@ -36,8 +38,14 @@ const createWindow = () => {
 
   mainWindow.loadFile('index.html');
   
-  // 为了调试目的可以启用开发者工具
-  // mainWindow.webContents.openDevTools();
+  // 在开发环境自动打开开发者工具，便于调试
+  if (process.env.NODE_ENV !== 'production') {
+    try {
+      mainWindow.webContents.openDevTools({ mode: 'detach' });
+    } catch (e) {
+      console.warn('无法打开 DevTools:', e && e.message);
+    }
+  }
 };
 
 // 获取金价的真实函数 — 使用 huilvbiao 返回的 hq_str_* 文本并解析

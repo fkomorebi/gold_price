@@ -33,11 +33,11 @@
 
       body {
         font-family: 'Microsoft YaHei', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background: rgba(0, 0, 0, 0.75);
+        background: rgba(12, 14, 16, 0.70);
         color: #fff;
-        border-radius: 12px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.25);
-        font-size: 10px;
+        border-radius: 8px;
+        box-shadow: none;
+        font-size: 12px;
         cursor: default;
       }
 
@@ -47,8 +47,8 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        height: 30px;
-        padding: 6px 10px;
+        height: 28px;
+        padding: 4px 8px;
         border-bottom: 1px solid rgba(255, 255, 255, 0.08);
       }
 
@@ -69,29 +69,52 @@
 
       .container {
         width: 100%;
-        padding: 8px 10px;
+        padding: 6px 8px;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+
+      /* 内容区域：限制高度并隐藏内部滚动条，确保小窗口不出现滚动 */
+      #gold-data-container {
+        overflow: hidden;
+        flex: 1 1 auto;
+        min-height: 0; /* 允许子元素收缩以适配父容器 */
       }
 
       .title {
         font-size: 12px;
-        font-weight: bold;
+        font-weight: 600;
         color: #FFD700;
         flex-grow: 1;
         -webkit-user-select: none;
+        display: flex;
+        align-items: center;
+        gap: 6px;
       }
+
+
+      .gold-left { display:flex; align-items:center; gap:6px; color:#ddd; }
 
       .gold-item {
         display: flex;
+        flex-direction: row;
         justify-content: space-between;
         align-items: center;
-        margin: 3px 0;
-        padding: 2px 0;
-        font-size: 10px;
+        margin: 1px 0;
+        padding: 0;
+        font-size: 12px;
+        line-height: 18px;
+        height: 18px;
+        gap: 8px;
+        white-space: nowrap;
+        overflow: hidden;
         -webkit-user-select: none;
       }
 
-      .gold-name { color: #ddd; flex: 3; }
-      .gold-price { font-weight: bold; color: #FFD700; flex: 2; text-align: right; }
+      .gold-name { color: #ddd; max-width: 90px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display:inline-block; font-size:12px; }
+      .gold-price { font-weight: 700; color: #FFD700; min-width: 48px; text-align: right; font-size:12px; }
 
       /* 使常规显示项也成为拖动区域（但交互元素仍需 .no-drag） */
       .gold-item, .gold-name, .gold-price, .title {
@@ -99,25 +122,30 @@
       }
 
       .update-time {
-        text-align: center;
-        font-size: 8px;
-        color: #aaa;
+        display:flex;
+        align-items:center;
+        gap:8px;
+        justify-content:center;
+        font-size:11px;
+        color: #bdbdbd;
         margin-top: 8px;
         padding-top: 6px;
-        border-top: 1px solid rgba(255, 255, 255, 0.06);
+        border-top: 1px solid rgba(255, 255, 255, 0.04);
       }
 
-      .loading { text-align: center; padding: 18px 0; color: #FFD700; font-size: 11px; }
+      .loading { text-align: center; padding: 12px 0; color: #FFD700; font-size: 12px; display:flex; align-items:center; justify-content:center; gap:8px; }
+
+      /* 在非常小的窗口中隐藏滚动条（webkit） */
+      ::-webkit-scrollbar { width: 0; height: 0; }
     </style>
   </head>
   <body>
     <div class="container">
-      
       <div id="gold-data-container">
-        <div class="loading">获取中...</div>
+        <div class="loading"><span>获取中...</span></div>
       </div>
       
-      <div id="update-time" class="update-time no-drag"></div>
+      <div id="update-time" class="update-time no-drag"><span></span></div>
     </div>
     
     <script src="./renderer.js"></script>
