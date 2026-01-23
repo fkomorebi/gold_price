@@ -51,7 +51,3 @@ pnpm run dist
 
 **其他说明**
 - 安装后 `postinstall` 脚本会运行 `electron-builder install-app-deps`，若遇到依赖问题请先确保本地环境满足 native 模块构建要求。
-
----
-
-如果你希望我把 README 内容改成英文版、补充运行截图或添加贡献指南和许可证信息，告诉我我会继续完善。
