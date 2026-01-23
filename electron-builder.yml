@@ -1,5 +1,7 @@
 appId: com.komorebi.goldprice
 productName: "Gold Price"
+directories:
+  buildResources: assets
 files:
   - "build/**/*"
   - "index.html"
@@ -7,9 +9,9 @@ files:
   - "renderer.js"
   - "assets/**"
   - "node_modules/**"
-directories:
-  buildResources: assets
+icon: build/icons/icon.png
 win:
+  icon: build/icons/icon.ico
   target:
     - target: nsis
       arch:
@@ -23,10 +25,12 @@ nsis:
   createDesktopShortcut: always
   createStartMenuShortcut: true
 mac:
+  icon: build/icons/icon.icns
   target:
     - dmg
     - zip
 linux:
+  icon: build/icons/icon.png
   target:
     - AppImage
     - deb
