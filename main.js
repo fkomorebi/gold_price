@@ -38,8 +38,8 @@ const createWindow = () => {
 
   mainWindow.loadFile('index.html');
   
-  // 在开发环境自动打开开发者工具，便于调试
-  if (process.env.NODE_ENV !== 'production') {
+  // 仅在未打包（开发）环境自动打开开发者工具，便于调试
+  if (!app.isPackaged) {
     try {
       mainWindow.webContents.openDevTools({ mode: 'detach' });
     } catch (e) {
@@ -203,8 +203,8 @@ ipcMain.handle('get-gold-price', async () => {
   return await getGoldPrice();
 });
 
-// 调试：如果需要解析示例返回值，可在这里调用
-if (process.env.NODE_ENV !== 'production') {
+// 调试：仅在未打包（开发）环境调用示例解析输出
+if (!app.isPackaged) {
   const sample = `var hq_str_gds_AUTD = "1083.50,0,1083.00,1083.50,1093.80,1069.28,15:30:05,1085.93,1089.96,57076,6.00,1.00,2026-01-22,黄金延期";
 var hq_str_hf_GC = "4836.550,,4836.000,4836.500,4841.100,4772.700,16:02:34,4837.500,4836.200,0,2,3,2026-01-22,纽约黄金,0";
 var hq_str_hf_XAU = "4834.51,4831.010,4834.51,4834.86,4838.82,4772.39,16:02:00,4831.01,4832.91,0,0,0,2026-01-22,伦敦金（现货黄金）";`;

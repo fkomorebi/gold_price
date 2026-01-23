@@ -1,0 +1,33 @@
+appId: com.komorebi.goldprice
+productName: "Gold Price"
+files:
+  - "build/**/*"
+  - "index.html"
+  - "main.js"
+  - "renderer.js"
+  - "assets/**"
+  - "node_modules/**"
+directories:
+  buildResources: assets
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+        - ia32
+  publisherName: Komorebi
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: always
+  createStartMenuShortcut: true
+mac:
+  target:
+    - dmg
+    - zip
+linux:
+  target:
+    - AppImage
+    - deb
+  category: Utility
